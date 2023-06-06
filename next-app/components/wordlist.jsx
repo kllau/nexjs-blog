@@ -35,13 +35,15 @@ export function WordList(props) {
       <GridToolbarContainer>
         <GridToolbarFilterButton />
         <GridToolbarExport />
-        <IconButton
-          aria-label="Delete Words"
-          color="secondary"
-          onClick={handleDeleteWords}
-        >
-          <DeleteOutlineSharpIcon />
-        </IconButton>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', flexGrow: 1, marginRight: 15 }}>
+          <IconButton
+            aria-label="Delete Words"
+            color="primary"
+            onClick={handleDeleteWords}
+          >
+            <DeleteOutlineSharpIcon />
+          </IconButton>
+        </div>
       </GridToolbarContainer>
     );
   }

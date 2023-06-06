@@ -1,4 +1,3 @@
-import Link from "next/link";
 import Head from "next/head";
 import Layout from "../components/layout";
 import utilStyles from "../styles/utils.module.css";
@@ -11,10 +10,37 @@ import Typography from "@mui/material/Typography";
 import { WordList } from "../components/wordlist";
 import { Divider, IconButton } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import FormControl from "@mui/material/FormControl";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
+import ButtonGroup from "@mui/material/ButtonGroup";
 import SendIcon from "@mui/icons-material/Send";
+import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
+import HistoryEduIcon from "@mui/icons-material/HistoryEdu";
+import { createTheme } from "@mui/material/styles";
+import { ThemeProvider } from "@emotion/react";
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      light: "#d1c4e9",
+      main: "#4527a0",
+      dark: "#311b92",
+      contrastText: "#fff",
+    },
+    secondary: {
+      light: "#ff7961",
+      main: "#f44336",
+      dark: "#ba000d",
+      contrastText: "#000",
+    },
+    success: {
+      light: "#80cbc4",
+      main: "#00695c",
+      dark: "#004d40",
+      contrastText: "#e0f2f1",
+    },
+  },
+});
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -46,10 +72,21 @@ export default function (props) {
     fetchData();
   }, [id]);
 
+  // Function to begin studying words
+  const handleStudy = () => {
+    //TODO Flashcards
+  }
+  // Function to begin practicing words
+  const handlePractice = () => {
+    //TODO type-in practice
+  }
+
+  // Entering new words to the course
   const [inputWords, setInputWords] = useState([
     { id: uuid4(), target_word: "", source_word: "" },
   ]);
 
+  // Visibility of the first word input div
   const [visible, setVisible] = useState(false);
   function firstNewWord() {
     setVisible(true);
@@ -74,26 +111,43 @@ export default function (props) {
     setInputWords(newInputWords);
   };
 
+  //Refresh list without refreshing the whole page
   const refreshList = useCallback(() => {
     setRefreshCount(refreshCount + 1);
     setInputWords([]);
     setVisible(false);
   }, [refreshCount]);
 
-  const [formErrorSourceword, setFormErrorSourceword] = useState(false);
-  const [formErrorTargetword, setFormErrorTargetword] = useState(false);
+  // Validate input is not empty
+  const validateInput = () => {
+    let hasError = false;
+    const newInputWords = inputWords.map((inputWord) => {
+      const source_word = inputWord.source_word.trim();
+      const target_word = inputWord.target_word.trim();
+
+      if (source_word.length === 0) {
+        hasError = true;
+        return { ...inputWord, hasErrorSourceWord: true };
+      }
+      if (target_word.length === 0) {
+        hasError = true;
+        return { ...inputWord, hasErrorTargetWord: true };
+      }
+      return inputWord;
+    });
+    setInputWords(newInputWords);
+    return !hasError;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    let valid = validateInput(inputWords);
+    if (valid === false) {
+      return;
+    }
+
     const words_to_db = inputWords.map((w) => {
-      if (w.source_word.length === 0) {
-        setFormErrorSourceword();
-        return;
-      }
-      else if (w.target_word.length === 0) {
-        setFormErrorTargetword();
-        return;
-      }
-      else return {
+      return {
         source_word: w.source_word,
         target_word: w.target_word,
         course_id: id,
@@ -122,82 +176,121 @@ export default function (props) {
       {courses != null
         ? courses.map((course, index) => (
             <div key={index}>
-              <Head>
-                <title>{course.name}</title>
-              </Head>
-              <Container>
-                <h1 key={index}>{course.name}</h1>
-                <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                  {course.source_language} - {course.target_language}
-                </Typography>
-                <p>{course.description}</p>
-              </Container>
-              <Divider />
-              <Container>
-                <div className={utilStyles.divRow}>
-                  <h2>Word list</h2>
-                  <IconButton
-                    aria-label="New Course"
-                    color="success"
-                    onClick={handleAddWord}
+            <Head>
+              <title>{course.name}</title>
+            </Head>
+              <ThemeProvider theme={theme}>
+                  <Container>
+                    <h1 key={index}>{course.name}</h1>
+                    <Typography sx={{ mb: 1.5 }} color="text.secondary">
+                      {course.source_language} - {course.target_language}
+                    </Typography>
+                    <p>{course.description}</p>
+                  </Container>
+                <Divider />
+                <Container>
+                  <div
+                    className={`${utilStyles.divRow} ${utilStyles.marginTop}`}
+                    style={{ display: 'flex', justifyContent: 'flex-start', flexGrow: 1, marginRight: 15 }}
                   >
-                    <AddCircleOutlineIcon />
-                  </IconButton>
-                </div>
-              </Container>
-              <Container
-                className={utilStyles.marginBottom}
-                style={{ display: visible ? "block" : "none" }}
-              >
-                <form>
-                  {inputWords.map((inputWord) => (
-                    <div key={inputWord.id} className={utilStyles.marginBottom}>
-                      <TextField
-                        error={formErrorSourceword}
-                        sx={{ mr: 1 }}
-                        autoComplete="off"
-                        variant="standard"
-                        color="grey"
-                        name="source_word"
-                        label="Source Word"
-                        value={inputWords.source_word}
-                        onChange={(event) =>
-                          handleChangeInput(inputWord.id, event)
-                        }
-                      />
-                      <TextField
-                        error={formErrorTargetword}
-                        autoComplete="off"
-                        variant="standard"
-                        color="grey"
-                        name="target_word"
-                        label="Target Word"
-                        value={inputWords.target_word}
-                        onChange={(event) =>
-                          handleChangeInput(inputWord.id, event)
-                        }
-                      />
-                    </div>
-                  ))}
-                  <Button
-                    className={utilStyles.saveButton}
-                    endIcon={<SendIcon />}
-                    variant="contained"
-                    color="success"
-                    type="submit"
-                    onClick={handleSubmit}
-                  >
-                    Save
-                  </Button>
-                </form>
-              </Container>
-              <Container>
-                <WordList
-                  id={course.id}
-                  refreshCount={refreshCount}
-                  refreshList={refreshList}
-                />
-              </Container>
+                    <ButtonGroup>
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        startIcon={<LibraryBooksIcon />}
+                        onClick={handleStudy}
+                      >
+                        Study
+                      </Button>
+                      <Button
+                        variant="contained"
+                        startIcon={<HistoryEduIcon />}
+                        onClick={handlePractice}
+                      >
+                        Practice
+                      </Button>
+                    </ButtonGroup>
+                  </div>
+                </Container>
+                <Container>
+                  <div className={utilStyles.divRow}>
+                    <h2>Word list</h2>
+                    <IconButton
+                      aria-label="New Word"
+                      color="success"
+                      onClick={handleAddWord}
+                    >
+                      <AddCircleOutlineIcon />
+                    </IconButton>
+                  </div>
+                </Container>
+                <Container
+                  className={utilStyles.marginBottom}
+                  style={{ display: visible ? "block" : "none" }}
+                >
+                  <form>
+                    {inputWords.map((inputWord) => (
+                      <div
+                        key={inputWord.id}
+                        className={utilStyles.marginBottom}
+                      >
+                        <TextField
+                          error={inputWord.hasErrorSourceWord}
+                          helperText={
+                            inputWord.hasErrorSourceWord
+                              ? "Enter source word"
+                              : ""
+                          }
+                          sx={{ mr: 1 }}
+                          autoComplete="off"
+                          variant="standard"
+                          color="grey"
+                          name="source_word"
+                          label="Source Word"
+                          value={inputWords.source_word}
+                          onChange={(event) =>
+                            handleChangeInput(inputWord.id, event)
+                          }
+                        />
+                        <TextField
+                          error={inputWord.hasErrorTargetWord}
+                          helperText={
+                            inputWord.hasErrorTargetWord
+                              ? "Enter target word"
+                              : ""
+                          }
+                          autoComplete="off"
+                          variant="standard"
+                          color="grey"
+                          name="target_word"
+                          label="Target Word"
+                          value={inputWords.target_word}
+                          onChange={(event) =>
+                            handleChangeInput(inputWord.id, event)
+                          }
+                        />
+                      </div>
+                    ))}
+                    <Button
+                      className={utilStyles.saveButton}
+                      endIcon={<SendIcon />}
+                      variant="contained"
+                      color="success"
+                      type="submit"
+                      onClick={handleSubmit}
+                    >
+                      Save
+                    </Button>
+                  </form>
+                </Container>
+                <Container>
+                  <WordList
+                    id={course.id}
+                    refreshCount={refreshCount}
+                    refreshList={refreshList}
+                  />
+                </Container>
+              </ThemeProvider>
             </div>
           ))
         : "still loading"}
