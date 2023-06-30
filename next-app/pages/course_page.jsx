@@ -18,6 +18,8 @@ import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import HistoryEduIcon from "@mui/icons-material/HistoryEdu";
 import { createTheme } from "@mui/material/styles";
 import { ThemeProvider } from "@emotion/react";
+import Link from "next/link";
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const theme = createTheme({
   palette: {
@@ -71,15 +73,6 @@ export default function (props) {
     }
     fetchData();
   }, [id]);
-
-  // Function to begin studying words
-  const handleStudy = () => {
-    //TODO Flashcards
-  }
-  // Function to begin practicing words
-  const handlePractice = () => {
-    //TODO type-in practice
-  }
 
   // Entering new words to the course
   const [inputWords, setInputWords] = useState([
@@ -176,39 +169,54 @@ export default function (props) {
       {courses != null
         ? courses.map((course, index) => (
             <div key={index}>
-            <Head>
-              <title>{course.name}</title>
-            </Head>
+              <Head>
+                <title>{course.name}</title>
+              </Head>
               <ThemeProvider theme={theme}>
-                  <Container>
-                    <h1 key={index}>{course.name}</h1>
-                    <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                      {course.source_language} - {course.target_language}
-                    </Typography>
-                    <p>{course.description}</p>
-                  </Container>
+                <Container>
+                  <div className={utilStyles.divRow}>
+                  <Link href="/"><IconButton><ArrowBackIcon fontSize="large" /></IconButton></Link>
+                  <h1 key={index}>{course.name}</h1>
+                  </div>
+                  <Typography sx={{ mb: 1.5 }} color="text.secondary">
+                    {course.source_language} - {course.target_language}
+                  </Typography>
+                  <p>{course.description}</p>
+                </Container>
                 <Divider />
                 <Container>
                   <div
                     className={`${utilStyles.divRow} ${utilStyles.marginTop}`}
-                    style={{ display: 'flex', justifyContent: 'flex-start', flexGrow: 1, marginRight: 15 }}
+                    style={{
+                      display: "flex",
+                      justifyContent: "flex-start",
+                      flexGrow: 1,
+                      marginRight: 15,
+                    }}
                   >
                     <ButtonGroup>
-                      <Button
-                        variant="outlined"
-                        color="primary"
-                        startIcon={<LibraryBooksIcon />}
-                        onClick={handleStudy}
+                      <Link
+                        href={{ pathname: "/study", query: { id: course.id } }}
                       >
-                        Study
-                      </Button>
-                      <Button
-                        variant="contained"
-                        startIcon={<HistoryEduIcon />}
-                        onClick={handlePractice}
+                        <Button
+                          variant="outlined"
+                          color="primary"
+                          startIcon={<LibraryBooksIcon />}
+                          sx={{ mr: 0.5 }}
+                        >
+                          Study
+                        </Button>
+                      </Link>
+                      <Link
+                        href={{ pathname: "/practice", query: { id: course.id } }}
                       >
-                        Practice
-                      </Button>
+                        <Button
+                          variant="contained"
+                          startIcon={<HistoryEduIcon />}
+                        >
+                          Practice
+                        </Button>
+                      </Link>
                     </ButtonGroup>
                   </div>
                 </Container>

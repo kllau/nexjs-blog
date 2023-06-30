@@ -59,8 +59,16 @@
   }
 
   .marginBottom {
-    margin-bottom:8px;
+    margin-bottom: 8px;
   }
   .marginTop {
-    margin-top:20px;
+    margin-top: 20px;
+  }
+  
+.marginTop10 {
+  margin-top: 10pxx;;
+}
+
+  .cardColor {
+    background-color: #666
   }
